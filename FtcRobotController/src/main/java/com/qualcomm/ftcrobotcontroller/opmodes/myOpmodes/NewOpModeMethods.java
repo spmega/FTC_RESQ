@@ -3,6 +3,7 @@ package com.qualcomm.ftcrobotcontroller.opmodes.myOpmodes;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorController;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 /**
@@ -13,17 +14,17 @@ public abstract class NewOpModeMethods extends OpMode {
 
     private DcMotor leftDrive;
     private DcMotor rightDrive;
-    //private DcMotor base;
-    //private DcMotor arm;
+    private DcMotor tapeMeasureMotor;
     //private DcMotor;
     //private DcMotor;
     //private DcMotor;
     //private DcMotor;
 
-    //private Servo leftFlipper;
-    //private Servo rightFlipper;
-    //private Servo;
-    //private Servo;
+    private Servo tapeMeasureServo;
+    private Servo leftServo;
+    private Servo rightServo;
+    private Servo hookServo;
+    private Servo climberServo;
 
     private final double MIN_MOTOR_POWER = 1.0;
     private final double MAX_MOTOR_POWER = -1.0;
@@ -31,7 +32,7 @@ public abstract class NewOpModeMethods extends OpMode {
     private final int TICKS_PER_ROTATION = 3193;
 
     private final String LEFT_DRIVE_NAME = "leftDrive";
-    private final String RIGHT_DRIVE_NAME = "leftDrive";
+    private final String RIGHT_DRIVE_NAME = "rightDrive";
 
     private int leftDrivePort= 0;
     private int rightDrivePort = 0;
@@ -42,26 +43,37 @@ public abstract class NewOpModeMethods extends OpMode {
         //I'm initializing the motors
         leftDrive = hardwareMap.dcMotor.get(LEFT_DRIVE_NAME);
         rightDrive = hardwareMap.dcMotor.get(RIGHT_DRIVE_NAME);
+        tapeMeasureMotor = hardwareMap.dcMotor.get("tapeMeasureMotor");
 
         leftDrivePort = leftDrive.getPortNumber();
         rightDrivePort = rightDrive.getPortNumber();
+
+
         //I'm initializing the dcMotorController so that I can
         //use only on object throughout the entire code
         //which makes convenient
-
-
-
 
         try {
             setTheMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
             setTheDirection(null, null);
             resetEncoders();
-            setTheMode(DcMotorController.RunMode.RUN_TO_POSITION);
+            initializeServos();
         }catch(HardwareException e){
             e.printStackTrace();
         }
 
     }
+
+    private void initializeServos() {
+        leftServo = hardwareMap.servo.get("leftServo");
+        rightServo = hardwareMap.servo.get("rightServo");
+        tapeMeasureServo = hardwareMap.servo.get("tapeMeasureServo");
+        hookServo = hardwareMap.servo.get("hookServo");
+        climberServo = hardwareMap.servo.get("climberServo");
+
+        rightServo.setDirection(Servo.Direction.REVERSE);
+    }
+
 
     //all getters methods that get the requested variable
     public DcMotor getLeftDrive(){
@@ -251,15 +263,38 @@ public abstract class NewOpModeMethods extends OpMode {
     public void manualDrive(){
         float leftPower = Range.clip(gamepad1.left_stick_y, -1, 1);;
         float rightPower = Range.clip(gamepad1.right_stick_y, -1, 1);;
+        float tapeMeasureMotorPower = Range.clip(gamepad2.right_stick_y, -1, 1);;
 
         // scale the joystick value to make it easier to control
         // the robot more precisely at slower speeds.
         rightPower = (float) scaleInput(rightPower);
         leftPower =  (float) scaleInput(leftPower);
+        tapeMeasureMotorPower = (float) scaleInput(tapeMeasureMotorPower);
 
         // write the values to the motors
         leftDrive.setPower(leftPower);
         rightDrive.setPower(rightPower);
+        tapeMeasureMotor.setPower(tapeMeasureMotorPower);
+
+        senseButtons();
+    }
+
+    public void senseButtons(){
+        if(gamepad1.a){
+            leftServo.setPosition(leftServo.getPosition()-0.1);
+            rightServo.setPosition(rightServo.getPosition()-0.1);
+        } else if(gamepad1.b){
+            leftServo.setPosition(leftServo.getPosition()+0.1);
+            rightServo.setPosition(rightServo.getPosition()+0.1);
+        } else if(gamepad2.a){
+            hookServo.setPosition(hookServo.getPosition()-0.1);
+        } else if(gamepad2.b){
+            hookServo.setPosition(hookServo.getPosition()+0.1);
+        } else if(gamepad2.x) {
+            climberServo.setPosition(climberServo.getPosition()-0.1);
+        } else if(gamepad2.y) {
+            climberServo.setPosition(climberServo.getPosition()+0.1);
+        }
     }
 
     @Override
