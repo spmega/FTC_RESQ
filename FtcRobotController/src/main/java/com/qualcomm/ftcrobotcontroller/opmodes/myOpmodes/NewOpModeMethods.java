@@ -64,7 +64,7 @@ public abstract class NewOpModeMethods extends OpMode {
 
     }
 
-    private void initializeServos() {
+    private void initializeServos() throws HardwareException {
         leftServo = hardwareMap.servo.get("leftServo");
         rightServo = hardwareMap.servo.get("rightServo");
         tapeMeasureServo = hardwareMap.servo.get("tapeMeasureServo");
@@ -72,6 +72,29 @@ public abstract class NewOpModeMethods extends OpMode {
         climberServo = hardwareMap.servo.get("climberServo");
 
         rightServo.setDirection(Servo.Direction.REVERSE);
+
+        if(leftServo.getPosition()<=0.5)
+            leftServo.scaleRange(leftServo.getPosition(), leftServo.getPosition()+0.5);
+        else
+            throw new HardwareException();
+
+        if(rightServo.getPosition()<=0.5)
+            rightServo.scaleRange(rightServo.getPosition(), rightServo.getPosition()+0.5);
+        else
+            throw new HardwareException();
+
+        if(tapeMeasureServo.getPosition()<=0.8)
+            tapeMeasureServo.scaleRange(tapeMeasureServo.getPosition()-0.5, tapeMeasureServo.getPosition()+0.2);
+        else
+            throw new HardwareException();
+
+        if(hookServo.getPosition()<=0.5)
+            hookServo.scaleRange(hookServo.getPosition(), hookServo.getPosition()+0.5);
+        else
+            throw new HardwareException();
+
+        if(climberServo.getPosition()<=0.5)
+            climberServo.scaleRange(climberServo.getPosition(), Servo.MAX_POSITION);
     }
 
 
@@ -148,6 +171,11 @@ public abstract class NewOpModeMethods extends OpMode {
         telemetry.addData(rightDrive.getDeviceName() + " current position",
                 rightDrive.getCurrentPosition());
         telemetry.addData("Time:", telemetry.getTimestamp());
+        telemetry.addData("leftServo:", leftServo.getPosition());
+        telemetry.addData("rightServo:", rightServo.getPosition());
+        telemetry.addData("climberServo:", climberServo.getPosition());
+        telemetry.addData("HookServo", hookServo.getPosition());
+        telemetry.addData("tapeMeasureServo:", tapeMeasureServo.getPosition());
     }
 
     public boolean hasReached(){
