@@ -14,17 +14,17 @@ public abstract class NewOpModeMethods extends OpMode {
 
     private DcMotor leftDrive;
     private DcMotor rightDrive;
-    private DcMotor tapeMeasureMotor;
+    //private DcMotor tapeMeasureMotor;
     //private DcMotor;
     //private DcMotor;
     //private DcMotor;
     //private DcMotor;
 
-    private Servo tapeMeasureServo;
+    /*private Servo tapeMeasureServo;
     private Servo leftServo;
     private Servo rightServo;
     private Servo hookServo;
-    private Servo climberServo;
+    private Servo climberServo;*/
 
     private final double MIN_MOTOR_POWER = 1.0;
     private final double MAX_MOTOR_POWER = -1.0;
@@ -43,7 +43,8 @@ public abstract class NewOpModeMethods extends OpMode {
         //I'm initializing the motors
         leftDrive = hardwareMap.dcMotor.get(LEFT_DRIVE_NAME);
         rightDrive = hardwareMap.dcMotor.get(RIGHT_DRIVE_NAME);
-        tapeMeasureMotor = hardwareMap.dcMotor.get("tapeMeasureMotor");
+        leftDrive.setDirection(DcMotor.Direction.REVERSE);
+        //tapeMeasureMotor = hardwareMap.dcMotor.get("tapeMeasureMotor");
 
         leftDrivePort = leftDrive.getPortNumber();
         rightDrivePort = rightDrive.getPortNumber();
@@ -65,7 +66,7 @@ public abstract class NewOpModeMethods extends OpMode {
     }
 
     private void initializeServos() throws HardwareException {
-        leftServo = hardwareMap.servo.get("leftServo");
+        /*leftServo = hardwareMap.servo.get("leftServo");
         rightServo = hardwareMap.servo.get("rightServo");
         tapeMeasureServo = hardwareMap.servo.get("tapeMeasureServo");
         hookServo = hardwareMap.servo.get("hookServo");
@@ -94,7 +95,7 @@ public abstract class NewOpModeMethods extends OpMode {
             throw new HardwareException();
 
         if(climberServo.getPosition()<=0.5)
-            climberServo.scaleRange(climberServo.getPosition(), Servo.MAX_POSITION);
+            climberServo.scaleRange(climberServo.getPosition(), Servo.MAX_POSITION);*/
     }
 
 
@@ -171,11 +172,11 @@ public abstract class NewOpModeMethods extends OpMode {
         telemetry.addData(rightDrive.getDeviceName() + " current position",
                 rightDrive.getCurrentPosition());
         telemetry.addData("Time:", telemetry.getTimestamp());
-        telemetry.addData("leftServo:", leftServo.getPosition());
+        /*telemetry.addData("leftServo:", leftServo.getPosition());
         telemetry.addData("rightServo:", rightServo.getPosition());
         telemetry.addData("climberServo:", climberServo.getPosition());
         telemetry.addData("HookServo", hookServo.getPosition());
-        telemetry.addData("tapeMeasureServo:", tapeMeasureServo.getPosition());
+        telemetry.addData("tapeMeasureServo:", tapeMeasureServo.getPosition());*/
     }
 
     public boolean hasReached(){
@@ -289,26 +290,26 @@ public abstract class NewOpModeMethods extends OpMode {
     }
 
     public void manualDrive(){
-        float leftPower = Range.clip(gamepad1.left_stick_y, -1, 1);;
-        float rightPower = Range.clip(gamepad1.right_stick_y, -1, 1);;
-        float tapeMeasureMotorPower = Range.clip(gamepad2.right_stick_y, -1, 1);;
+        float leftPower = Range.clip(gamepad1.left_stick_y, -1, 1);
+        float rightPower = Range.clip(gamepad1.right_stick_y, -1, 1);
+        //float tapeMeasureMotorPower = Range.clip(gamepad2.right_stick_y, -1, 1);;
 
         // scale the joystick value to make it easier to control
         // the robot more precisely at slower speeds.
         rightPower = (float) scaleInput(rightPower);
         leftPower =  (float) scaleInput(leftPower);
-        tapeMeasureMotorPower = (float) scaleInput(tapeMeasureMotorPower);
+        //tapeMeasureMotorPower = (float) scaleInput(tapeMeasureMotorPower);
 
         // write the values to the motors
         leftDrive.setPower(leftPower);
         rightDrive.setPower(rightPower);
-        tapeMeasureMotor.setPower(tapeMeasureMotorPower);
+        //tapeMeasureMotor.setPower(tapeMeasureMotorPower);
 
         senseButtons();
     }
 
     public void senseButtons(){
-        if(gamepad1.a){
+        /*if(gamepad1.a){
             leftServo.setPosition(leftServo.getPosition()-0.1);
             rightServo.setPosition(rightServo.getPosition()-0.1);
         } else if(gamepad1.b){
@@ -322,7 +323,7 @@ public abstract class NewOpModeMethods extends OpMode {
             climberServo.setPosition(climberServo.getPosition()-0.1);
         } else if(gamepad2.y) {
             climberServo.setPosition(climberServo.getPosition()+0.1);
-        }
+        }*/
     }
 
     @Override
