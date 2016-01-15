@@ -1,5 +1,6 @@
 package com.qualcomm.ftcrobotcontroller.opmodes.myOpmodes;
 
+import com.qualcomm.ftccommon.DbgLog;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorController;
@@ -20,14 +21,14 @@ public abstract class NewOpModeMethods extends OpMode {
     //private DcMotor;
     //private DcMotor;
 
-    /*private Servo tapeMeasureServo;
+    private Servo tapeMeasureServo;
     private Servo leftServo;
     private Servo rightServo;
     private Servo hookServo;
-    private Servo climberServo;*/
+    private Servo climberServo;
 
-    private final double MIN_MOTOR_POWER = 1.0;
-    private final double MAX_MOTOR_POWER = -1.0;
+    private final double MIN_MOTOR_POWER = -1.0;
+    private final double MAX_MOTOR_POWER = 1.0;
     private final int ROBOT_WIDTH = 18;
     private final int TICKS_PER_ROTATION = 3193;
 
@@ -58,7 +59,7 @@ public abstract class NewOpModeMethods extends OpMode {
             setTheMode(DcMotorController.RunMode.RUN_USING_ENCODERS);
             setTheDirection(null, null);
             resetEncoders();
-            initializeServos();
+            //initializeServos();
         }catch(HardwareException e){
             e.printStackTrace();
         }
@@ -167,9 +168,9 @@ public abstract class NewOpModeMethods extends OpMode {
                 + rightDrive.getDeviceName());
         telemetry.addData(rightDrive.getDeviceName() + " connection info:" ,
                 rightDrive.getConnectionInfo());
-        telemetry.addData(leftDrive.getDeviceName() + " current position",
+        telemetry.addData("leftDrive's current position",
                 leftDrive.getCurrentPosition());
-        telemetry.addData(rightDrive.getDeviceName() + " current position",
+        telemetry.addData("rightDrive's current position",
                 rightDrive.getCurrentPosition());
         telemetry.addData("Time:", telemetry.getTimestamp());
         /*telemetry.addData("leftServo:", leftServo.getPosition());
@@ -179,38 +180,48 @@ public abstract class NewOpModeMethods extends OpMode {
         telemetry.addData("tapeMeasureServo:", tapeMeasureServo.getPosition());*/
     }
 
-    public boolean hasReached(){
-        return Math.abs(leftDrive.getCurrentPosition()
-                - leftDrive.getTargetPosition()) == 0
-                && Math.abs(rightDrive.getCurrentPosition()
-                - rightDrive.getTargetPosition()) == 0;
+    public boolean hasReached() throws HardwareException{
+        if(!leftDrive.isBusy() && !rightDrive.isBusy()){
+            DbgLog.msg("THE MOTOR POWERS WERE NOT SET");
+            throw new HardwareException("THE MOTOR POWERS WERE NOT SET");
+        }
+
+        return Math.abs(leftDrive.getTargetPosition()
+                - leftDrive.getCurrentPosition()) > 0
+                && Math.abs(rightDrive.getTargetPosition()
+                - rightDrive.getCurrentPosition()) > 0;
     }
 
     public void drive(int leftPos, int rightPos, double leftPow, double rightPow) throws HardwareException, IllegalArgumentException {
         if(leftPow > MAX_MOTOR_POWER || leftPow < MIN_MOTOR_POWER
-                || rightPow > MAX_MOTOR_POWER || rightPow < MIN_MOTOR_POWER)
+                || rightPow > MAX_MOTOR_POWER || rightPow < MIN_MOTOR_POWER){
             throw new IllegalArgumentException();
+        }
+        DbgLog.msg("IN THE DRIVE() METHOD");
 
         if(rightPow > 0 && rightPos > 0)
             rightPos = rightPos * -1;
 
         try{
             setTargetPos(leftPos, rightPos);
+            DbgLog.msg("AFTER THE SETtARGETpOS()");
             setMotorPowers(leftPow, rightPow);
-            if(hasReached()) {
-                setMotorPowers(0.0, 0.0);
+            DbgLog.msg("AFTER THE THE SETmOTORpOWER() METHOD");
+            while(true){
+                if(hasReached()) {
+                    setMotorPowers(0.0, 0.0);
+                    break;
+                }
             }
+            DbgLog.msg("OUT OF THE WHILE() LOOP");
         } catch(HardwareException e){
             e.printStackTrace();
-        }
-
-        if(!leftDrive.isBusy()
-                && !rightDrive.isBusy()){
-            throw new HardwareException("The drive() method did not work.");
         }
     }
 
     public void setTargetPos(int leftPos, int rightPos)throws HardwareException{
+        DbgLog.msg("IN THE SETpOS() METHOD");
+        //resetEncoders();
         leftDrive.setTargetPosition(leftPos);
         rightDrive.setTargetPosition(rightPos);
 
@@ -221,6 +232,7 @@ public abstract class NewOpModeMethods extends OpMode {
     }
 
     public void setMotorPowers(double leftPow, double rightPow)throws HardwareException{
+        DbgLog.msg("IN THE SETmOTORpOWERS() METHOD");
         setLeftMotorPower(leftPow);
         setRightMotorPower(rightPow);
 
@@ -233,6 +245,7 @@ public abstract class NewOpModeMethods extends OpMode {
     }
 
     public boolean setLeftMotorPower(double leftPow){
+        DbgLog.msg("IN THE SETlEFTmOTORpOWER() METHOD");
         leftDrive.setPower(leftPow);
 
         return leftDrive.isBusy()
@@ -240,6 +253,7 @@ public abstract class NewOpModeMethods extends OpMode {
     }
 
     public boolean setRightMotorPower(double rightPow){
+        DbgLog.msg("IN THE SETrIGHTmOTORpOWER() METHOD");
         rightDrive.setPower(rightPow);
 
         return rightDrive.isBusy()
@@ -301,15 +315,18 @@ public abstract class NewOpModeMethods extends OpMode {
         //tapeMeasureMotorPower = (float) scaleInput(tapeMeasureMotorPower);
 
         // write the values to the motors
-        leftDrive.setPower(leftPower);
-        rightDrive.setPower(rightPower);
+        try {
+            setMotorPowers(leftPower, rightPower);
+        } catch (HardwareException e) {
+            e.printStackTrace();
+        }
         //tapeMeasureMotor.setPower(tapeMeasureMotorPower);
 
-        senseButtons();
+        //senseButtons();
     }
 
     public void senseButtons(){
-        /*if(gamepad1.a){
+        if(gamepad1.a){
             leftServo.setPosition(leftServo.getPosition()-0.1);
             rightServo.setPosition(rightServo.getPosition()-0.1);
         } else if(gamepad1.b){
@@ -323,7 +340,7 @@ public abstract class NewOpModeMethods extends OpMode {
             climberServo.setPosition(climberServo.getPosition()-0.1);
         } else if(gamepad2.y) {
             climberServo.setPosition(climberServo.getPosition()+0.1);
-        }*/
+        }
     }
 
     @Override
